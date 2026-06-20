@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtistDirect — Ethical Art Marketplace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <div class="modal-overlay" onclick="closeAuth()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAuth()" aria-label="Close">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 id="authTitle">Welcome Back</h2>
+            <p class="modal-subtitle" id="authSubtitle">Sign in to your account</p>
+
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="form-group">
+                    <label for="authEmail">Email</label>
+                    <input type="email" id="authEmail" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Password</label>
+                    <input type="password" id="authPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <span id="authBtnText">Sign In</span>
+                </button>
+            </form>
+
+            <p class="modal-footer">
+                <span id="authToggleText">Don't have an account?</span>
+                <button type="button" class="btn-link" onclick="toggleAuthMode()" id="authToggleBtn">Sign up</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div id="cartOverlay" class="cart-overlay" onclick="closeCart()"></div>
+    <aside id="cart" class="cart-sidebar" role="complementary" aria-label="Shopping cart">
+        <div class="cart-header">
+            <h3>Your Cart</h3>
+            <button class="cart-close" onclick="closeCart()" aria-label="Close cart">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div id="cartItems" class="cart-items"></div>
+
+        <div id="cartEmpty" class="cart-empty">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+            </svg>
+            <p>Your cart is empty</p>
+            <button class="btn btn-secondary" onclick="closeCart()">Continue Shopping</button>
+        </div>
+
+        <div id="cartFooter" class="cart-footer">
+            <div class="cart-donation">
+                <span>Social Impact (50%)</span>
+                <span id="cartDonation">€0.00</span>
+            </div>
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="cartTotal">€0.00</span>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="openCheckout()">Proceed to Checkout</button>
+        </div>
+    </aside>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-overlay" onclick="closeCheckout()"></div>
+        <div class="modal-content modal-lg">
+            <button class="modal-close" onclick="closeCheckout()" aria-label="Close">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="checkout-grid">
+                <div class="checkout-form">
+                    <h2>Checkout</h2>
+
+                    <form id="checkoutForm" onsubmit="completeOrder(event)">
+                        <h3>Shipping Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="shipFirst">First Name</label>
+                                <input type="text" id="shipFirst" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipLast">Last Name</label>
+                                <input type="text" id="shipLast" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="shipAddress">Address</label>
+                            <input type="text" id="shipAddress" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="shipCity">City</label>
+                                <input type="text" id="shipCity" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipZip">Postal Code</label>
+                                <input type="text" id="shipZip" required>
+                            </div>
+                        </div>
+
+                        <h3>Payment Details</h3>
+                        <div class="form-group">
+                            <label for="cardNumber">Card Number</label>
+                            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cardExpiry">Expiry</label>
+                                <input type="text" id="cardExpiry" placeholder="MM/YY" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cardCvc">CVC</label>
+                                <input type="text" id="cardCvc" placeholder="123" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full btn-lg">
+                            <span id="checkoutBtnText">Complete Purchase</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="checkout-summary">
+                    <h3>Order Summary</h3>
+                    <div id="checkoutItems"></div>
+                    <div class="checkout-totals">
+                        <div class="checkout-row">
+                            <span>Subtotal</span>
+                            <span id="checkoutSubtotal">€0.00</span>
+                        </div>
+                        <div class="checkout-row">
+                            <span>Shipping</span>
+                            <span>Free</span>
+                        </div>
+                        <div class="checkout-row highlight">
+                            <span>Social Impact Donation</span>
+                            <span id="checkoutDonation">€0.00</span>
+                        </div>
+                        <div class="checkout-row total">
+                            <span>Total</span>
+                            <span id="checkoutTotal">€0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container header-inner">
+            <a href="#" class="logo">
+                <span class="logo-icon">!</span>
+                artistDirect
+            </a>
+
+            <nav class="nav" id="nav">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#impact" class="nav-link">Impact</a>
+                <a href="#shop" class="nav-link">Shop</a>
+                <a href="#artists" class="nav-link">Artists</a>
+                <a href="#join" class="nav-link">Join</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="btn btn-ghost" onclick="openAuth()" id="authBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span class="btn-text">Sign In</span>
+                </button>
+                <button class="btn btn-ghost cart-btn" onclick="openCart()" aria-label="Open cart">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1" />
+                        <circle cx="20" cy="21" r="1" />
+                        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                    </svg>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </button>
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main>
+
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="hero-bg"></div>
+            <div class="container hero-content">
+                <span class="hero-tag">Ethical Art Marketplace</span>
+                <h1 class="hero-title">
+                    Art That <span class="text-gradient">Empowers</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Connecting independent artists and collectors through a fair and transparent marketplace that
+                    protects creativity, respects ownership, and supports social good.
+                </p>
+                <div class="hero-actions">
+                    <a href="#shop" class="btn btn-primary btn-lg">
+                        Explore Collection
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                    <a href="#about" class="btn btn-secondary btn-lg">Learn More</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-value" data-count="2847">0</span>
+                        <span class="stat-label">Artists Supported</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" data-count="15420">0</span>
+                        <span class="stat-label">Artworks Sold</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" data-count="50">0</span>
+                        <span class="stat-label">% to Social Impact</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-scroll">
+                <span>Scroll to explore</span>
+                <div class="scroll-indicator"></div>
+            </div>
+        </section>
+        <!-- About Section -->
+        <section id="about" class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Our Mission</span>
+                    <h2 class="section-title">Building a Fairer Art Ecosystem</h2>
+                    <p class="section-subtitle">
+                        We believe artists deserve visibility, fair compensation, ownership of their work, and the
+                        opportunity to create positive social impact through art.
+                    </p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                            </svg>
+                        </div>
+                        <h3>Artist First</h3>
+                        <p>Artists showcase and sell their work directly to collectors while maintaining ownership and
+                            control of their creations. ArtistDirect acts as a transparent platform that facilitates
+                            transactions without taking ownership of the artwork.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                            </svg>
+                        </div>
+                        <h3>Social Impact</h3>
+                        <p>Every transaction supports the platform's mission by contributing to social initiatives while
+                            promoting ethical and responsible digital commerce.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path
+                                    d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+                            </svg>
+                        </div>
+                        <h3>Global Reach</h3>
+                        <p>Building connections between artists, collectors, and supporters through a borderless digital
+                            ecosystem.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                        </div>
+                        <h3>Authenticity & Trust</h3>
+                        <p>ArtistDirect promotes authentic human creativity by supporting original artist-created work,
+                            applying transparent content policies, and protecting intellectual property rights.
+                            AI-generated content is not accepted as a substitute for human artistic creation, ensuring a
+                            trusted environment for creators and collectors.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Impact Section -->
+        <section id="impact" class="section impact-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Our Impact</span>
+                    <h2 class="section-title">Making a Difference</h2>
+                    <p class="section-subtitle">
+                        Track the real-world impact of our community in real-time.
+                    </p>
+                </div>
+
+                <div class="impact-dashboard">
+                    <div class="impact-main">
+                        <div class="impact-counter">
+                            <span class="impact-currency">€</span>
+                            <span class="impact-value" id="totalImpact">0</span>
+                        </div>
+                        <p class="impact-label">Total Social Impact Generated</p>
+                        <div class="impact-bar">
+                            <div class="impact-bar-fill" id="impactBar"></div>
+                        </div>
+                        <p class="impact-goal">Goal: €100,000</p>
+                    </div>
+
+                    <div class="impact-cards">
+                        <div class="impact-card">
+                            <div class="impact-card-icon education"></div>
+                            <h4>Education</h4>
+                            <p class="impact-card-value">€<span id="impactEducation">0</span></p>
+                            <p class="impact-card-desc">Art supplies for 120+ schools</p>
+                        </div>
+                        <div class="impact-card">
+                            <div class="impact-card-icon environment"></div>
+                            <h4>Environment</h4>
+                            <p class="impact-card-value">€<span id="impactEnvironment">0</span></p>
+                            <p class="impact-card-desc">Trees planted: 2,400+</p>
+                        </div>
+                        <div class="impact-card">
+                            <div class="impact-card-icon community"></div>
+                            <h4>Community</h4>
+                            <p class="impact-card-value">€<span id="impactCommunity">0</span></p>
+                            <p class="impact-card-desc">Local art programs funded</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Shop Section -->
+        <section id="shop" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Collection</span>
+                    <h2 class="section-title">Featured Artworks</h2>
+                    <p class="section-subtitle">
+                        Discover unique pieces from independent artists around the world.
+                    </p>
+                </div>
+
+                <div class="shop-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="painting">Painting</button>
+                    <button class="filter-btn" data-filter="photography">Photography</button>
+                    <button class="filter-btn" data-filter="digital">Digital</button>
+                    <button class="filter-btn" data-filter="sculpture">Sculpture</button>
+                </div>
+
+                <div class="products-grid" id="productsGrid"></div>
+
+                <div class="shop-cta">
+                    <button class="btn btn-secondary btn-lg">View Full Collection</button>
+                </div>
+            </div>
+        </section>
+        <!-- Artists Section -->
+        <section id="artists" class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Community</span>
+                    <h2 class="section-title">Featured Artists</h2>
+                    <p class="section-subtitle">
+                        Meet the talented creators behind our collection.
+                    </p>
+                </div>
+
+                <div class="artists-grid" id="artistsGrid"></div>
+            </div>
+        </section>
+        <!-- Join Section -->
+        <section id="join" class="section">
+            <div class="container">
+                <div class="join-wrapper">
+                    <div class="join-content">
+                        <span class="section-tag">For Artists</span>
+                        <h2 class="section-title">Join Our Network</h2>
+                        <p>
+                            Are you an artist looking for a platform that values your work?
+                            Join our community of 2,800+ independent creators and start selling
+                            with fair compensation and social impact.
+                        </p>
+                        <ul class="join-benefits">
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                                85% revenue share on all sales
+                            </li>
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                                Global audience of art collectors
+                            </li>
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                                Professional artist profile & portfolio
+                            </li>
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                                Be part of positive social change
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="join-form-wrapper">
+                        <form class="join-form" id="joinForm" onsubmit="submitApplication(event)">
+                            <div class="form-group">
+                                <label for="artistName">Full Name</label>
+                                <input type="text" id="artistName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="artistEmail">Email</label>
+                                <input type="email" id="artistEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="artistPortfolio">Portfolio URL</label>
+                                <input type="url" id="artistPortfolio" placeholder="https://">
+                            </div>
+                            <div class="form-group">
+                                <label for="artistBio">About Your Work</label>
+                                <textarea id="artistBio" rows="4"
+                                    placeholder="Tell us about your artistic style, medium, and what inspires you..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full btn-lg">Submit Application</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <span class="logo-icon">!</span>
+                        artistDirect
+                    </a>
+                    <p>Ethical art marketplace empowering artists and driving social impact worldwide.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Instagram">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="2" y="2" width="20" height="20" rx="5" />
+                                <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01" />
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Twitter">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="LinkedIn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 6a2 2 0 100-4 2 2 0 000 4z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Marketplace</h4>
+                    <a href="#">All Artworks</a>
+                    <a href="#">Featured Artists</a>
+                    <a href="#">New Arrivals</a>
+                    <a href="#">Collections</a>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Our Impact</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Press</a>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Shipping Info</a>
+                    <a href="#">Returns</a>
+                </div>
+
+                <div class="footer-newsletter">
+                    <h4>Stay Updated</h4>
+                    <p>Get the latest artworks and impact updates.</p>
+                    <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                        <input type="email" placeholder="Enter your email" required>
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2024 ArtistDirect. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Settings</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="app.js"></script>
+</body>
+
+</html>
