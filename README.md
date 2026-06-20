@@ -6,6 +6,7 @@ Description: An academic e-business project developed for the course "Informatio
 **Institution:** Harokopio University of Athens — Department of Informatics and Telematics  
 **Course:** Information Systems & Electronic Business  
 **Academic Year:** 2025-2026
+
 ---
 
 ## About the Project
